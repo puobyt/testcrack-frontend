@@ -1,0 +1,309 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { assessmentAPI } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
+
+const SpeedLearning = () => {
+  const [assessmentData, setAssessmentData] = useState(null);
+  const [currentStep, setCurrentStep] = useState('reading'); // 'reading', 'questions', 'submitting'
+  const [readingStartTime, setReadingStartTime] = useState(null);
+  const [questionStartTime, setQuestionStartTime] = useState(null);
+  const [userAnswers, setUserAnswers] = useState([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [readingTime, setReadingTime] = useState(0);
+  
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  // Timer for reading
+  useEffect(() => {
+    let interval;
+    if (currentStep === 'reading' && readingStartTime) {
+      interval = setInterval(() => {
+        setReadingTime(Date.now() - readingStartTime);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [currentStep, readingStartTime]);
+
+  // Load assessment content
+  useEffect(() => {
+    loadAssessmentContent();
+  }, []);
+
+  const loadAssessmentContent = async () => {
+    try {
+      setLoading(true);
+      const response = await assessmentAPI.getContent();
+      
+      if (response.success) {
+        setAssessmentData(response.data);
+        setUserAnswers(new Array(response.data.questions.length).fill(null));
+        // Start reading timer
+        setReadingStartTime(Date.now());
+      } else {
+        setError('Failed to load assessment content');
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || 'Failed to load assessment');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleNextTopic = () => {
+    if (currentStep === 'reading') {
+      // Move to questions
+      setCurrentStep('questions');
+      setQuestionStartTime(Date.now());
+    }
+  };
+
+  const handleAnswerSelect = (questionIndex, answerIndex) => {
+    const newAnswers = [...userAnswers];
+    newAnswers[questionIndex] = answerIndex;
+    setUserAnswers(newAnswers);
+  };
+
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < assessmentData.questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    } else {
+      handleSubmitAssessment();
+    }
+  };
+
+  const handlePreviousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    }
+  };
+
+  const handleSubmitAssessment = async () => {
+    try {
+      setCurrentStep('submitting');
+      
+      const readingTimeSeconds = Math.floor((Date.now() - readingStartTime) / 1000);
+      const questionTimeSeconds = Math.floor((Date.now() - questionStartTime) / 1000);
+      
+      const response = await assessmentAPI.submitAssessment({
+        userAnswers,
+        readingTimeSeconds,
+        questionTimeSeconds
+      });
+      
+      if (response.success) {
+        // Navigate to results with data
+        navigate('/results', { state: { results: response.data } });
+      } else {
+        setError('Failed to submit assessment');
+        setCurrentStep('questions');
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || 'Failed to submit assessment');
+      setCurrentStep('questions');
+    }
+  };
+
+  const formatTime = (ms) => {
+    const seconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="assessment-container">
+        <div className="loading">Loading assessment content...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="assessment-container">
+        <div className="error-message">{error}</div>
+        <button onClick={loadAssessmentContent} className="btn btn-primary">
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="assessment-container">
+      {/* Header */}
+      <header className="header">
+        <div className="header-logo">
+          <span>⚡</span>
+          Test Crack
+        </div>
+        <nav className="header-nav">
+          <span className="nav-item">Home</span>
+          <span className="nav-item">Topics</span>
+          <span className="nav-item active">Speed Learning</span>
+          <span className="nav-item">Practice Tests</span>
+          <button onClick={logout} className="nav-item" style={{background: 'none', border: 'none', color: 'white', cursor: 'pointer'}}>
+            Logout
+          </button>
+        </nav>
+      </header>
+
+      {/* Timer */}
+      {currentStep === 'reading' && (
+        <div className="timer">
+          Reading Time: {formatTime(readingTime)}
+        </div>
+      )}
+
+      <div className="speed-learning">
+        {/* Mode Header */}
+        <div className="mode-header">
+          <div className="mode-title">
+            <span>⏱️</span>
+            Speed Learning Mode
+          </div>
+          <div className="controls">
+            <div className="control-group">
+              <span>Pronunciation</span>
+              <div className="toggle-switch"></div>
+            </div>
+            <div className="control-group">
+              <span>Speed</span>
+              <div className="speed-control">
+                <input type="range" className="speed-slider" min="1" max="10" defaultValue="8" />
+                <span>8x</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Reading Step */}
+        {currentStep === 'reading' && (
+          <div className="content-card">
+            <div className="content-header">
+              <h2 className="content-title">Advanced Algebra Concepts</h2>
+              <div className="content-actions">
+                <button className="icon-btn">🎤</button>
+                <button className="icon-btn">▶️</button>
+              </div>
+            </div>
+
+            <div className="content-text">
+              {assessmentData.passage}
+            </div>
+
+            <div className="action-bar">
+              <div className="read-aloud">
+                <button className="read-aloud-btn">
+                  🔊 Read Aloud
+                </button>
+                <input type="range" className="speed-slider" min="0.5" max="3" step="0.1" defaultValue="1" />
+              </div>
+
+              <div className="action-buttons">
+                <button className="btn btn-secondary">Retention Quiz</button>
+                <button className="btn btn-primary" onClick={handleNextTopic}>
+                  Next Topic
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Questions Step */}
+        {currentStep === 'questions' && (
+          <div className="questions-section">
+            <div className="content-card">
+              <div className="content-header">
+                <h2 className="content-title">
+                  Question {currentQuestionIndex + 1} of {assessmentData.questions.length}
+                </h2>
+              </div>
+
+              <div className="question-card">
+                <div className="question-text">
+                  {assessmentData.questions[currentQuestionIndex].question}
+                </div>
+
+                <div className="options-list">
+                  {assessmentData.questions[currentQuestionIndex].options.map((option, index) => (
+                    <div
+                      key={index}
+                      className={`option-item ${userAnswers[currentQuestionIndex] === index ? 'selected' : ''}`}
+                      onClick={() => handleAnswerSelect(currentQuestionIndex, index)}
+                    >
+                      <div className={`option-radio ${userAnswers[currentQuestionIndex] === index ? 'selected' : ''}`}></div>
+                      <div className="option-text">{option}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="action-bar">
+                <button 
+                  className="btn btn-secondary" 
+                  onClick={handlePreviousQuestion}
+                  disabled={currentQuestionIndex === 0}
+                >
+                  Previous
+                </button>
+                <button 
+                  className="btn btn-primary" 
+                  onClick={handleNextQuestion}
+                  disabled={userAnswers[currentQuestionIndex] === null}
+                >
+                  {currentQuestionIndex === assessmentData.questions.length - 1 ? 'Submit' : 'Next'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Submitting Step */}
+        {currentStep === 'submitting' && (
+          <div className="content-card">
+            <div className="loading">Calculating your speed score...</div>
+          </div>
+        )}
+
+        {/* Progress Section (always visible) */}
+        <div className="progress-section">
+          <h3 className="progress-header">Your Learning Progress</h3>
+          
+          <div className="progress-bar">
+            <div 
+              className="progress-fill" 
+              style={{ width: `${((currentQuestionIndex + 1) / (assessmentData?.questions.length || 1)) * 100}%` }}
+            ></div>
+          </div>
+          
+          <div className="progress-level">Level 8</div>
+          
+          <div className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-icon">✅</div>
+              <div className="stat-label">Topics Mastered</div>
+              <div className="stat-value">12</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon">⚡</div>
+              <div className="stat-label">Speed Score</div>
+              <div className="stat-value">780</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon">🎯</div>
+              <div className="stat-label">Retention Rate</div>
+              <div className="stat-value">92%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SpeedLearning;
