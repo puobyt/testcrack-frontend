@@ -735,6 +735,311 @@ body {
   backdrop-filter: blur(10px);
 }
 
+/* Subject Selection */
+.subject-selection {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px;
+}
+
+.selection-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.selection-header h2 {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: white;
+}
+
+.selection-header p {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.difficulty-selector {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.difficulty-selector label {
+  color: white;
+  font-weight: 600;
+  margin-right: 12px;
+}
+
+.difficulty-select {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 8px 16px;
+  color: white;
+  font-size: 16px;
+}
+
+.subjects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.subject-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.subject-card:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.subject-card.selected {
+  border-color: #fbbf24;
+  background: rgba(251, 191, 36, 0.2);
+}
+
+.subject-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin-bottom: 16px;
+  color: white;
+}
+
+.subject-info h3 {
+  color: white;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.subject-stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.subject-stats span {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+}
+
+.preferred-badge {
+  background: #fbbf24;
+  color: #1f2937;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+/* Credits Display */
+.credits-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+/* Premium Features */
+.read-aloud-btn.active {
+  background: #10b981;
+  color: white;
+}
+
+.change-subject-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  margin-left: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.change-subject-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.question-difficulty {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Credit Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.credit-modal {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-header h3 {
+  color: #1f2937;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.modal-header button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.credit-packages {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.credit-package {
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.credit-package:hover {
+  border-color: #4f46e5;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.15);
+}
+
+.credit-package.popular {
+  border-color: #4f46e5;
+  background: #f8faff;
+}
+
+.popular-badge {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4f46e5;
+  color: white;
+  padding: 4px 16px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.credit-package h4 {
+  color: #1f2937;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.credit-amount {
+  font-size: 32px;
+  font-weight: 700;
+  color: #4f46e5;
+  margin-bottom: 4px;
+}
+
+.price {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.savings {
+  color: #10b981;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.features {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+}
+
+.features li {
+  color: #6b7280;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.features li::before {
+  content: '✓';
+  color: #10b981;
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.purchase-btn {
+  width: 100%;
+  background: #4f46e5;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.purchase-btn:hover {
+  background: #4338ca;
+}
+
+.credit-package.popular .purchase-btn {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .auth-card {
@@ -742,7 +1047,7 @@ body {
     margin: 20px;
   }
   
-  .speed-learning {
+  .speed-learning, .subject-selection {
     padding: 20px;
   }
   
@@ -754,6 +1059,8 @@ body {
   
   .header-nav {
     gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
   }
   
   .mode-header {
@@ -767,7 +1074,7 @@ body {
     gap: 16px;
   }
   
-  .stats-grid {
+  .stats-grid, .subjects-grid {
     grid-template-columns: 1fr;
   }
   
@@ -782,5 +1089,18 @@ body {
   
   .results-container {
     padding: 20px;
+  }
+  
+  .credit-packages {
+    grid-template-columns: 1fr;
+  }
+  
+  .credit-modal {
+    padding: 20px;
+    margin: 10px;
+  }
+  
+  .selection-header h2 {
+    font-size: 24px;
   }
 }

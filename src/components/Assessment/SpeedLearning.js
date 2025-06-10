@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 
 const SpeedLearning = () => {
   const [assessmentData, setAssessmentData] = useState(null);
-  const [currentStep, setCurrentStep] = useState('reading'); // 'reading', 'questions', 'submitting'
+  const [currentStep, setCurrentStep] = useState('reading');
   const [readingStartTime, setReadingStartTime] = useState(null);
   const [questionStartTime, setQuestionStartTime] = useState(null);
   const [userAnswers, setUserAnswers] = useState([]);
@@ -13,8 +13,9 @@ const SpeedLearning = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [readingTime, setReadingTime] = useState(0);
+  const [debugInfo, setDebugInfo] = useState('');
   
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
   // Timer for reading
@@ -33,29 +34,79 @@ const SpeedLearning = () => {
     loadAssessmentContent();
   }, []);
 
+  const addDebugInfo = (message) => {
+    const timestamp = new Date().toLocaleTimeString();
+    setDebugInfo(prev => `${prev}\n[${timestamp}] ${message}`);
+    console.log(message);
+  };
+
   const loadAssessmentContent = async () => {
     try {
       setLoading(true);
+      addDebugInfo('🔄 Starting API call...');
+      
+      const token = localStorage.getItem('token');
+      const user = localStorage.getItem('user');
+      
+      addDebugInfo(`🔑 Token exists: ${!!token}`);
+      addDebugInfo(`👤 User exists: ${!!user}`);
+      addDebugInfo(`🌐 API URL: ${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}`);
+      
+      if (!token) {
+        addDebugInfo('❌ No token found - redirecting to login');
+        navigate('/login');
+        return;
+      }
+
+      addDebugInfo('📞 Making API call to /assessment/content');
       const response = await assessmentAPI.getContent();
+      
+      addDebugInfo(`📊 API Response received: ${JSON.stringify(response).substring(0, 100)}...`);
       
       if (response.success) {
         setAssessmentData(response.data);
         setUserAnswers(new Array(response.data.questions.length).fill(null));
-        // Start reading timer
         setReadingStartTime(Date.now());
+        addDebugInfo('✅ Assessment loaded successfully');
       } else {
+        addDebugInfo(`❌ API returned unsuccessful: ${response.message || 'Unknown error'}`);
         setError('Failed to load assessment content');
       }
     } catch (error) {
+      addDebugInfo(`💥 API Error: ${error.message}`);
+      addDebugInfo(`💥 Error details: ${JSON.stringify(error.response?.data || 'No response data')}`);
       setError(error.response?.data?.message || 'Failed to load assessment');
     } finally {
       setLoading(false);
     }
   };
 
+  const useTestData = () => {
+    addDebugInfo('🧪 Loading test data...');
+    const testData = {
+      passage: "This is a test passage to verify the component works. Functions are mathematical entities that assign exactly one output to each input. A function can be represented as f(x) where x is the input variable.",
+      questions: [
+        {
+          question: "What can a function be represented as?",
+          options: ["f(x)", "g(y)", "h(z)", "None of the above"]
+        },
+        {
+          question: "How many outputs does a function assign to each input?",
+          options: ["Zero", "Exactly one", "Two or more", "It varies"]
+        }
+      ]
+    };
+    
+    setAssessmentData(testData);
+    setUserAnswers(new Array(testData.questions.length).fill(null));
+    setReadingStartTime(Date.now());
+    setLoading(false);
+    setError('');
+    addDebugInfo('✅ Test data loaded successfully');
+  };
+
   const handleNextTopic = () => {
     if (currentStep === 'reading') {
-      // Move to questions
       setCurrentStep('questions');
       setQuestionStartTime(Date.now());
     }
@@ -95,7 +146,6 @@ const SpeedLearning = () => {
       });
       
       if (response.success) {
-        // Navigate to results with data
         navigate('/results', { state: { results: response.data } });
       } else {
         setError('Failed to submit assessment');
@@ -118,6 +168,16 @@ const SpeedLearning = () => {
     return (
       <div className="assessment-container">
         <div className="loading">Loading assessment content...</div>
+        <div style={{ margin: '20px', padding: '20px', background: '#f0f0f0', color: '#333' }}>
+          <h3>Debug Info:</h3>
+          <pre style={{ whiteSpace: 'pre-wrap', fontSize: '12px' }}>{debugInfo}</pre>
+          <button onClick={useTestData} style={{ margin: '10px', padding: '10px', background: '#007bff', color: 'white', border: 'none', borderRadius: '4px' }}>
+            🧪 Use Test Data (Skip API)
+          </button>
+          <button onClick={loadAssessmentContent} style={{ margin: '10px', padding: '10px', background: '#28a745', color: 'white', border: 'none', borderRadius: '4px' }}>
+            🔄 Retry API Call
+          </button>
+        </div>
       </div>
     );
   }
@@ -126,9 +186,16 @@ const SpeedLearning = () => {
     return (
       <div className="assessment-container">
         <div className="error-message">{error}</div>
-        <button onClick={loadAssessmentContent} className="btn btn-primary">
-          Try Again
-        </button>
+        <div style={{ margin: '20px', padding: '20px', background: '#f0f0f0', color: '#333' }}>
+          <h3>Debug Info:</h3>
+          <pre style={{ whiteSpace: 'pre-wrap', fontSize: '12px' }}>{debugInfo}</pre>
+          <button onClick={useTestData} style={{ margin: '10px', padding: '10px', background: '#007bff', color: 'white', border: 'none', borderRadius: '4px' }}>
+            🧪 Use Test Data (Skip API)
+          </button>
+          <button onClick={loadAssessmentContent} style={{ margin: '10px', padding: '10px', background: '#28a745', color: 'white', border: 'none', borderRadius: '4px' }}>
+            🔄 Retry API Call
+          </button>
+        </div>
       </div>
     );
   }
@@ -270,7 +337,7 @@ const SpeedLearning = () => {
           </div>
         )}
 
-        {/* Progress Section (always visible) */}
+        {/* Progress Section */}
         <div className="progress-section">
           <h3 className="progress-header">Your Learning Progress</h3>
           
